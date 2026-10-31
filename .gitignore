@@ -1,0 +1,28 @@
+# Build and test output
+/jellyscout
+/jellyscout.exe
+/bin/
+/dist/
+/coverage.out
+/coverage.html
+*.test
+*.test.exe
+
+# Local reports (may contain private library paths and server details)
+/report*.json
+/report*.html
+/.jellyscout-*.json
+
+# Local credentials
+.env
+.env.*
+!.env.example
+
+# Editor and operating-system files
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/
+*.swp
+*.swo
+*~
