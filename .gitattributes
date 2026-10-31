@@ -1,0 +1,2 @@
+# Keep source and configuration identical across Unix and Windows checkouts.
+* text=auto eol=lf
