@@ -218,7 +218,7 @@ func TestJSONAndTerminalURLsPreserveBasePaths(t *testing.T) {
 	}
 }
 
-func TestUnsafeURLsAreOmitted(t *testing.T) {
+func TestUnSafeURLsAreOmitted(t *testing.T) {
 	for _, raw := range []string{
 		"javascript:alert(1)", "JaVaScRiPt:alert(1)", "data:text/html,attack", "file:///etc/passwd",
 		"//evil.example/path", "/web/#/details?id=1", "https://", "https://%zz", "https://example.org:invalid/",
@@ -246,7 +246,7 @@ func TestUnsafeURLsAreOmitted(t *testing.T) {
 		})
 	}
 	for _, raw := range []string{"http://localhost:8096/web/#/details?id=abc", "HTTPS://example.org/web/"} {
-		if got := safeURL(raw); got != raw {
+		if got := SafeURL(raw); got != raw {
 			t.Errorf("safe URL rejected: %q", raw)
 		}
 	}

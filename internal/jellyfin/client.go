@@ -148,6 +148,10 @@ func (c *Client) Items(ctx context.Context, libraryID string, types []string, al
 	if !allImages {
 		q.Set("ImageTypeLimit", "1")
 	}
+	return c.queryItems(ctx, q)
+}
+
+func (c *Client) queryItems(ctx context.Context, q url.Values) ([]Item, error) {
 	var items []Item
 	seen := make(map[string]bool)
 	expectedTotal := -1
@@ -263,9 +267,13 @@ func (c *Client) getJSON(ctx context.Context, operation string, q url.Values, ta
 }
 
 func (c *Client) get(ctx context.Context, operation string, q url.Values) (*http.Response, error) {
+	return c.request(ctx, http.MethodGet, operation, q)
+}
+
+func (c *Client) request(ctx context.Context, method, operation string, q url.Values) (*http.Response, error) {
 	u := c.base.JoinPath(operation)
 	u.RawQuery = q.Encode()
-	req, err := http.NewRequestWithContext(ctx, http.MethodGet, u.String(), nil)
+	req, err := http.NewRequestWithContext(ctx, method, u.String(), nil)
 	if err != nil {
 		return nil, fmt.Errorf("%s: create request: %s", operation, c.redact(err.Error()))
 	}

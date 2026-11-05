@@ -17,6 +17,7 @@
 - Filter by library and check type; optionally fetch and decode artwork.
 - View terminal totals and affected items, including the server URL and direct Jellyfin item links.
 - Export JSON for scripts and use exit codes for automated checks.
+- Review findings interactively and confirm provider refreshes for selected items.
 
 
 ## Install
@@ -88,8 +89,58 @@ only checks applicable to each item type run. Empty or unknown names are rejecte
 By default, artwork checks inspect API references only. `--verify-images` fetches small
 renditions of the referenced primary image and every backdrop covered by enabled checks,
 then decodes them. Defaults are four concurrent image requests and a 30-second timeout
-per HTTP request. HTTP 404 and invalid image data are findings; timeouts, rate limits,
-and server errors mark verification incomplete. Authentication failures stop the scan.
+per HTTP request. HTTP 404 and invalid image data are findings; timeouts and server
+errors mark verification incomplete. Authentication failures and HTTP 429 rate limits
+stop the scan.
+
+## Interactive autofix
+
+Run the interactive view in a terminal with the same connection and scan flags:
+
+```sh
+jellyscout tui
+jellyscout tui --library TV_LIBRARY_ID --include-seasons --include-episodes
+jellyscout tui --verify-images --repair-timeout 2m --json final-report.json
+```
+
+Both stdin and stdout must be terminals. `tui` accepts the `scan` flags except
+`--format`, plus `--repair-timeout` (a positive duration, default `2m`). Progress
+appears inside the interface while it is active. `--json` saves the latest report
+using the existing JSON schema when you quit normally; an interrupted or failed
+session preserves any existing report file. `--fail-on-issues` applies to the
+findings remaining in that final report.
+
+| Key | Action |
+| --- | --- |
+| `j` / `k`, down / up arrows | Move between items or scroll an overlay |
+| Space | Toggle selection of the current eligible item |
+| `a` | Toggle selection of all visible eligible items |
+| `/` | Search by title, item ID, or library |
+| `l` / `t` / `c` / `s` | Cycle library / item type / check / status filters |
+| Enter | Open item details |
+| `r` | Review the selected repair batch |
+| Ctrl+R | Rescan the configured libraries and checks |
+| Esc | Close an overlay or cancel the active local batch |
+| `q` | Quit |
+
+The review defaults to **Cancel**. Press Tab to switch the action and Enter to
+activate it, or press `y` to confirm explicitly. Review every action's scope:
+refreshing a show or season affects its subtree, including descendants hidden by
+the current filters or excluded from the audit. Selected descendants covered by
+a parent action are grouped into that action. Selection and search filters do
+not restrict Jellyfin's recursive refresh scope.
+
+Repairs ask Jellyfin's configured providers to fill missing metadata and artwork,
+respecting metadata locks. There is no manual metadata editing. Existing metadata
+and images are not deliberately replaced, so corrupt referenced images can remain
+unresolved. Provider availability and configuration determine what Jellyfin can find.
+
+HTTP `204` means the refresh was **queued**, not completed. JellyScout rechecks
+items for up to two minutes per action by default; `--repair-timeout` changes that
+wait. The interface distinguishes resolved, partially resolved, and unresolved
+findings. Authentication failures or rate limits stop further dispatch. Canceling
+local work does not cancel refresh jobs Jellyfin has already accepted; timed-out
+or unresolved items may still change later. Use Ctrl+R to inspect their latest state.
 
 ## Output and exit codes
 

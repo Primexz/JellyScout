@@ -78,9 +78,9 @@ func makeView(r audit.Report) view {
 			lib.Affected++
 			typ.Affected++
 			v.Rows = append(v.Rows, row{
-				Title: displayTitle(result.Item), Library: lib.Name,
+				Title: DisplayTitle(result.Item), Library: lib.Name,
 				Type: typename, ID: result.Item.ID,
-				URL: safeURL(result.URL), Findings: result.Findings, Errors: result.Errors,
+				URL: SafeURL(result.URL), Findings: result.Findings, Errors: result.Errors,
 			})
 		}
 		libraries[libKey], types[typename] = lib, typ
@@ -109,7 +109,8 @@ func makeView(r audit.Report) view {
 	return v
 }
 
-func displayTitle(item jellyfin.Item) string {
+// DisplayTitle includes year or television numbering where available.
+func DisplayTitle(item jellyfin.Item) string {
 	parts := []string{}
 	if item.Type == "Episode" || item.Type == "Season" {
 		if item.SeriesName != "" {
@@ -140,8 +141,8 @@ func displayTitle(item jellyfin.Item) string {
 	return strings.Join(append(parts, name), " · ")
 }
 
-// safeURL allows only absolute HTTP(S) links without credentials or terminal controls.
-func safeURL(raw string) string {
+// SafeURL allows only absolute HTTP(S) links without credentials or terminal controls.
+func SafeURL(raw string) string {
 	if strings.ContainsRune(raw, '\\') || strings.ContainsFunc(raw, func(r rune) bool {
 		return unicode.IsControl(r) || unicode.IsSpace(r) || unicode.Is(unicode.Cf, r)
 	}) {
@@ -182,13 +183,13 @@ func WriteTerminal(w io.Writer, r audit.Report) error {
 		fmt.Fprintln(&b, "Status: COMPLETE")
 	}
 	fmt.Fprintf(&b, "Server: %s | version %s | ID %s\nJellyfin URL: %s\nGenerated: %s\nImage verification: %s\n\n",
-		terminalText(v.Server.ServerName), terminalText(v.Server.Version), terminalText(v.Server.ID),
-		safeURL(v.ServerURL), v.GeneratedAt, v.Verification)
+		TerminalText(v.Server.ServerName), TerminalText(v.Server.Version), TerminalText(v.Server.ID),
+		SafeURL(v.ServerURL), v.GeneratedAt, v.Verification)
 	fmt.Fprintf(&b, "Scanned: %d | Healthy: %d | Affected: %d\nMetadata findings: %d | Operational verification errors: %d\n",
 		v.Scanned, v.Healthy, v.Affected, v.Findings, v.Errors)
 	fmt.Fprintln(&b, "\nFindings by check:")
 	for _, check := range v.Checks {
-		fmt.Fprintf(&b, "  %s: %d\n", terminalText(check.Name), check.Count)
+		fmt.Fprintf(&b, "  %s: %d\n", TerminalText(check.Name), check.Count)
 	}
 	if len(v.Checks) == 0 {
 		fmt.Fprintln(&b, "  No checks recorded")
@@ -199,25 +200,25 @@ func WriteTerminal(w io.Writer, r audit.Report) error {
 	}{{"Library", v.Libraries}, {"Type", v.Types}} {
 		fmt.Fprintf(&b, "\n%s totals (scanned / affected):\n", section.name)
 		for _, g := range section.groups {
-			label := terminalText(g.Name)
+			label := TerminalText(g.Name)
 			if g.ID != "" {
-				label += " [" + terminalText(g.ID) + "]"
+				label += " [" + TerminalText(g.ID) + "]"
 			}
 			fmt.Fprintf(&b, "  %s: %d / %d\n", label, g.Scanned, g.Affected)
 		}
 	}
 	fmt.Fprintln(&b, "\nAffected items:")
 	for _, item := range v.Rows {
-		fmt.Fprintf(&b, "\n%s [%s] | Library: %s | ID: %s\n", terminalText(item.Title),
-			terminalText(item.Type), terminalText(item.Library), terminalText(item.ID))
+		fmt.Fprintf(&b, "\n%s [%s] | Library: %s | ID: %s\n", TerminalText(item.Title),
+			TerminalText(item.Type), TerminalText(item.Library), TerminalText(item.ID))
 		if item.URL != "" {
 			fmt.Fprintf(&b, "  Jellyfin: %s\n", item.URL)
 		}
 		for _, finding := range item.Findings {
-			fmt.Fprintf(&b, "  Metadata [%s]: %s\n", terminalText(finding.Check), terminalText(finding.Message))
+			fmt.Fprintf(&b, "  Metadata [%s]: %s\n", TerminalText(finding.Check), TerminalText(finding.Message))
 		}
 		for _, message := range item.Errors {
-			fmt.Fprintf(&b, "  Operational error: %s\n", terminalText(message))
+			fmt.Fprintf(&b, "  Operational error: %s\n", TerminalText(message))
 		}
 	}
 	if len(v.Rows) == 0 {
@@ -235,7 +236,7 @@ func WriteLibraries(w io.Writer, libs []jellyfin.Library) error {
 	// The tabwriter targets an in-memory buffer, so its writes cannot fail.
 	_, _ = fmt.Fprintln(tw, "LIBRARY ID\tNAME\tCOLLECTION TYPE")
 	for _, lib := range libs {
-		_, _ = fmt.Fprintf(tw, "%s\t%s\t%s\n", terminalText(lib.ID), terminalText(lib.Name), terminalText(lib.CollectionType))
+		_, _ = fmt.Fprintf(tw, "%s\t%s\t%s\n", TerminalText(lib.ID), TerminalText(lib.Name), TerminalText(lib.CollectionType))
 	}
 	_ = tw.Flush()
 	if len(libs) == 0 {
@@ -245,10 +246,10 @@ func WriteLibraries(w io.Writer, libs []jellyfin.Library) error {
 	return err
 }
 
-// terminalText removes ANSI/VT escape sequences, C0/C1 controls and Unicode
+// TerminalText removes ANSI/VT escape sequences, C0/C1 controls and Unicode
 // format controls (including bidi overrides). Tabs and line breaks in metadata
 // become spaces so untrusted text cannot create rows or columns.
-func terminalText(s string) string {
+func TerminalText(s string) string {
 	var b strings.Builder
 	state := "text"
 	for _, r := range s {

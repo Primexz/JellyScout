@@ -87,7 +87,7 @@ type jsonReport struct {
 }
 
 func makeJSONServer(server jellyfin.ServerInfo, serverURL string) jsonServer {
-	return jsonServer{ID: server.ID, Name: server.ServerName, Version: server.Version, URL: safeURL(serverURL)}
+	return jsonServer{ID: server.ID, Name: server.ServerName, Version: server.Version, URL: SafeURL(serverURL)}
 }
 
 // WriteJSON writes a versioned audit report. Totals include every scanned item;
@@ -121,9 +121,9 @@ func WriteJSON(w io.Writer, r audit.Report) error {
 		}
 		item := result.Item
 		entry := jsonItem{
-			ID: item.ID, Type: item.Type, Name: item.Name, Title: displayTitle(item),
+			ID: item.ID, Type: item.Type, Name: item.Name, Title: DisplayTitle(item),
 			Library: jsonLibrary{ID: result.Library.ID, Name: result.Library.Name},
-			URL:     safeURL(result.URL), Path: item.Path,
+			URL:     SafeURL(result.URL), Path: item.Path,
 			Findings: []jsonFinding{}, Errors: append([]string{}, result.Errors...),
 			SeriesName: item.SeriesName, SeasonName: item.SeasonName,
 		}

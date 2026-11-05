@@ -1,4 +1,4 @@
-// Package jellyfin implements the read-only Jellyfin API operations used by JellyScout.
+// Package jellyfin implements the Jellyfin API operations used by JellyScout.
 package jellyfin
 
 // Item contains only the Jellyfin fields needed by the audit.
@@ -23,6 +23,10 @@ type Item struct {
 	ParentIndexNumber *int              `json:"ParentIndexNumber"`
 	LocationType      string            `json:"LocationType"`
 	IsPlaceHolder     bool              `json:"IsPlaceHolder"`
+	// Settings must be explicitly requested. Nil values represent unknown lock
+	// settings, never an unlocked item; an explicit empty LockedFields is known.
+	LockData     *bool    `json:"LockData"`
+	LockedFields []string `json:"LockedFields"`
 }
 
 type ServerInfo struct {

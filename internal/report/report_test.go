@@ -206,8 +206,8 @@ func TestDisplayTitle(t *testing.T) {
 		{"unnamed", jellyfin.Item{}, "Untitled item"},
 	} {
 		t.Run(tt.name, func(t *testing.T) {
-			if got := displayTitle(tt.item); got != tt.want {
-				t.Errorf("displayTitle = %q, want %q", got, tt.want)
+			if got := DisplayTitle(tt.item); got != tt.want {
+				t.Errorf("DisplayTitle = %q, want %q", got, tt.want)
 			}
 		})
 	}
@@ -269,8 +269,8 @@ func TestTerminalTextStripsControlsAndEscapeSequences(t *testing.T) {
 		{"Unicode", "日本語 · Café 🎬", "日本語 · Café 🎬"},
 	} {
 		t.Run(tt.name, func(t *testing.T) {
-			if got := terminalText(tt.input); got != tt.want {
-				t.Errorf("terminalText(%q) = %q, want %q", tt.input, got, tt.want)
+			if got := TerminalText(tt.input); got != tt.want {
+				t.Errorf("TerminalText(%q) = %q, want %q", tt.input, got, tt.want)
 			}
 		})
 	}

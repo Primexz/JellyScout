@@ -198,7 +198,7 @@ func TestTVSelectionPlaceholdersAndDeduplication(t *testing.T) {
 }
 
 func TestMetadataAndAuthFailuresPreserveJSONFile(t *testing.T) {
-	for _, mode := range []string{"metadata", "auth", "image auth", "cancelled"} {
+	for _, mode := range []string{"metadata", "auth", "image auth", "image rate limit", "cancelled"} {
 		t.Run(mode, func(t *testing.T) {
 			f := &fixture{items: map[string][]jellyfin.Item{"movies": {healthy("movie", "Movie", "Movie")}}}
 			ctx := t.Context()
@@ -211,6 +211,9 @@ func TestMetadataAndAuthFailuresPreserveJSONFile(t *testing.T) {
 			case "image auth":
 				args = append(args, "--verify-images")
 				f.imageHandler = func(w http.ResponseWriter, r *http.Request) { w.WriteHeader(403) }
+			case "image rate limit":
+				args = append(args, "--verify-images")
+				f.imageHandler = func(w http.ResponseWriter, r *http.Request) { w.WriteHeader(http.StatusTooManyRequests) }
 			case "cancelled":
 				var cancel context.CancelFunc
 				ctx, cancel = context.WithCancel(ctx)
